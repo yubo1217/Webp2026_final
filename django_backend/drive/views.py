@@ -23,7 +23,10 @@ def login_view(request):
 
 @api_view(['POST'])
 def logout_view(request):
-    request.user.auth_token.delete()
+    try:
+        request.user.auth_token.delete()
+    except Exception:
+        pass
     return Response({'message': '已登出'})
 
 
