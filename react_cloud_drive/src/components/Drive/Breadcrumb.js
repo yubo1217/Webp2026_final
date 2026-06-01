@@ -24,22 +24,17 @@ export default function Breadcrumb({ currentFolder }) {
           <Home fontSize="small" /> My Drive
         </Link>
       )}
-      {path.map((folder, idx) => {
-        const isLast = idx === path.length - 1 && currentFolder.id !== null;
-        return isLast ? (
-          <Typography key={folder.id} color="text.primary">{folder.name}</Typography>
-        ) : (
-          <Link
-            key={folder.id}
-            component={RouterLink}
-            to={`/folder/${folder.id}`}
-            underline="hover"
-            color="inherit"
-          >
-            {folder.name}
-          </Link>
-        );
-      })}
+      {path.map((folder) => (
+        <Link
+          key={folder.id}
+          component={RouterLink}
+          to={`/folder/${folder.id}`}
+          underline="hover"
+          color="inherit"
+        >
+          {folder.name}
+        </Link>
+      ))}
       {currentFolder !== ROOT_FOLDER && (
         <Typography color="text.primary">{currentFolder?.name}</Typography>
       )}

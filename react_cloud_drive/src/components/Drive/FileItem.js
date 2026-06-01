@@ -27,6 +27,20 @@ function formatBytes(bytes) {
 export default function FileItem({ file, onDeleted }) {
   const [anchor, setAnchor] = useState(null);
 
+  async function handleDownload() {
+    const token = localStorage.getItem('token');
+    const res = await fetch(`http://localhost:8000/api/files/${file.id}/download/`, {
+      headers: { Authorization: `Token ${token}` },
+    });
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = file.name;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
   async function handleDelete() {
     setAnchor(null);
     try {
@@ -49,7 +63,7 @@ export default function FileItem({ file, onDeleted }) {
         </Box>
       </CardContent>
       <Tooltip title="下載">
-        <IconButton size="small" component="a" href={file.url} target="_blank" rel="noreferrer" download>
+        <IconButton size="small" onClick={() => handleDownload()}>
           <Download fontSize="small" />
         </IconButton>
       </Tooltip>

@@ -13,7 +13,7 @@ export function useFolder(folderId = null) {
     if (folderId == null) {
       setFolder(ROOT_FOLDER);
     } else {
-      client.get(`/folders/${folderId}/`).then((res) => setFolder(res.data));
+      client.get(`/folders/${folderId}/`).then((res) => setFolder(res));
     }
   }, [folderId]);
 
@@ -24,8 +24,8 @@ export function useFolder(folderId = null) {
       client.get(`/folders/?parent=${parent}`),
       client.get(`/files/?folder=${parent}`),
     ]).then(([fRes, fileRes]) => {
-      setChildFolders(Array.isArray(fRes.data) ? fRes.data : (fRes.data?.results ?? []));
-      setChildFiles(Array.isArray(fileRes.data) ? fileRes.data : (fileRes.data?.results ?? []));
+      setChildFolders(Array.isArray(fRes) ? fRes : (fRes?.results ?? []));
+      setChildFiles(Array.isArray(fileRes) ? fileRes : (fileRes?.results ?? []));
     }).catch(() => {
       setChildFolders([]);
       setChildFiles([]);
@@ -38,8 +38,8 @@ export function useFolder(folderId = null) {
       client.get(`/folders/?parent=${parent}`),
       client.get(`/files/?folder=${parent}`),
     ]).then(([fRes, fileRes]) => {
-      setChildFolders(Array.isArray(fRes.data) ? fRes.data : (fRes.data?.results ?? []));
-      setChildFiles(Array.isArray(fileRes.data) ? fileRes.data : (fileRes.data?.results ?? []));
+      setChildFolders(Array.isArray(fRes) ? fRes : (fRes?.results ?? []));
+      setChildFiles(Array.isArray(fileRes) ? fileRes : (fileRes?.results ?? []));
     });
   }
 

@@ -11,5 +11,6 @@ urlpatterns = [
     path('auth/login/', login_view),
     path('auth/logout/', logout_view),
     path('auth/me/', MeView.as_view()),
+    path('files/<int:pk>/download/', FileViewSet.as_view({'get': 'download'})),
     path('', include(router.urls)),
 ]

@@ -1,4 +1,5 @@
 from rest_framework import generics, viewsets, status
+from django.http import FileResponse
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
@@ -48,12 +49,13 @@ class FolderViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         user = self.request.user
-        parent = self.request.query_params.get('parent', None)
         qs = Folder.objects.filter(user=user)
-        if parent == 'null' or parent is None:
-            qs = qs.filter(parent=None)
-        else:
-            qs = qs.filter(parent_id=parent)
+        if self.action == 'list':
+            parent = self.request.query_params.get('parent', None)
+            if parent == 'null' or parent is None:
+                qs = qs.filter(parent=None)
+            else:
+                qs = qs.filter(parent_id=parent)
         return qs
 
     def perform_create(self, serializer):
@@ -65,12 +67,13 @@ class FileViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         user = self.request.user
-        folder = self.request.query_params.get('folder', None)
         qs = File.objects.filter(user=user)
-        if folder == 'null' or folder is None:
-            qs = qs.filter(folder=None)
-        else:
-            qs = qs.filter(folder_id=folder)
+        if self.action == 'list':
+            folder = self.request.query_params.get('folder', None)
+            if folder == 'null' or folder is None:
+                qs = qs.filter(folder=None)
+            else:
+                qs = qs.filter(folder_id=folder)
         return qs
 
     def get_serializer_context(self):
@@ -111,6 +114,12 @@ class FileViewSet(viewsets.ModelViewSet):
             serializer = self.get_serializer(file_obj)
 
         return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    def download(self, request, *args, **kwargs):
+        instance = self.get_object()
+        response = FileResponse(instance.file.open('rb'), content_type=instance.mime_type or 'application/octet-stream')
+        response['Content-Disposition'] = f'attachment; filename="{instance.name}"'
+        return response
 
     def destroy(self, request, *args, **kwargs):
         instance = self.get_object()
