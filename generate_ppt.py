@@ -128,7 +128,7 @@ header(s, "系統架構")
 rect(s, 0, 1.2, 13.33, 6.3, fill=LIGHT_GRAY)
 
 layers = [
-    (BLUE,      "前端層",   "React 19  ·  MUI v5  ·  React Router  ·  fetch API"),
+    (BLUE,      "前端層",   "React 19  ·  MUI v9  ·  React Router  ·  fetch API"),
     (DARK_BLUE, "後端層",   "Django 6  ·  Django REST Framework  ·  Token Auth  ·  CORS"),
     (GREEN,     "資料層",   "SQLite3  ·  本地檔案系統 (media/)"),
 ]
@@ -200,22 +200,23 @@ for i, (f, t) in enumerate([
     txt(s, t, 2.2,  1.99+i*0.45, 1.9, 0.36, size=12, color=GRAY)
 
 # File 表
-rect(s, 5.0, 1.45, 3.8, 4.25, fill=WHITE, line=GREEN, lw=Pt(2))
+rect(s, 5.0, 1.45, 3.8, 4.65, fill=WHITE, line=GREEN, lw=Pt(2))
 rect(s, 5.0, 1.45, 3.8, 0.5, fill=GREEN)
 txt(s, "File", 5.15, 1.5, 3.5, 0.38, size=17, bold=True, color=WHITE)
 for i, (f, t) in enumerate([
-    ("id",         "BigInt  PK"),
-    ("name",       "CharField"),
-    ("file",       "FileField"),
-    ("size",       "BigInt"),
-    ("mime_type",  "CharField"),
-    ("folder",     "FK → Folder (nullable)"),
-    ("user",       "FK → User"),
+    ("id",          "BigInt  PK"),
+    ("name",        "CharField"),
+    ("file",        "FileField"),
+    ("size",        "BigInt"),
+    ("mime_type",   "CharField"),
+    ("folder",      "FK → Folder (nullable)"),
+    ("user",        "FK → User"),
+    ("created_at",  "DateTime"),
 ]):
     bg = LIGHT_GRAY if i % 2 == 0 else WHITE
-    rect(s, 5.0, 1.95+i*0.45, 3.8, 0.44, fill=bg)
-    txt(s, f, 5.15, 1.99+i*0.45, 1.5, 0.36, size=13, color=DARK)
-    txt(s, t, 6.65, 1.99+i*0.45, 1.9, 0.36, size=12, color=GRAY)
+    rect(s, 5.0, 1.95+i*0.42, 3.8, 0.41, fill=bg)
+    txt(s, f, 5.15, 1.98+i*0.42, 1.5, 0.34, size=12, color=DARK)
+    txt(s, t, 6.65, 1.98+i*0.42, 1.9, 0.34, size=11, color=GRAY)
 
 # 關聯說明
 rect(s, 9.2, 1.45, 3.8, 3.8, fill=WHITE,
@@ -233,52 +234,71 @@ for i, r in enumerate(rels):
         size=14, bold=True, color=DARK_BLUE if i < 2 else BLUE)
 
 # 儲存路徑
-rect(s, 0.5, 5.55, 12.5, 0.72, fill=LIGHT_BLUE,
+rect(s, 0.5, 6.22, 12.5, 0.72, fill=LIGHT_BLUE,
      line=RGBColor(0xC5, 0xD8, 0xFB), lw=Pt(1))
 txt(s, "檔案路徑：  media / files / {user_id} / {folder_id} / {filename}",
-    0.7, 5.68, 12.0, 0.45, size=15, bold=True, color=DARK_BLUE)
+    0.7, 6.35, 12.0, 0.45, size=15, bold=True, color=DARK_BLUE)
 
 # ════════════════════════════════════════════════
-# Slide 7 — API 端點
+# Slide 7a — API 端點（認證）
 # ════════════════════════════════════════════════
-s = prs.slides.add_slide(BLANK)
-header(s, "API 端點")
-rect(s, 0, 1.2, 13.33, 6.3, fill=WHITE)
+def _api_table(slide, rows, col_x, col_w, row_h=0.72, start_y=1.75):
+    mc = {"GET": GREEN, "POST": BLUE, "DELETE": RED}
+    pc = {"公開": ORANGE, "認證": BLUE}
+    for i, (method, ep, perm, desc) in enumerate(rows):
+        bg = WHITE if i % 2 == 0 else LIGHT_GRAY
+        cy = start_y + i * row_h
+        rect(slide, 0.3, cy, 12.9, row_h - 0.04, fill=bg)
+        rect(slide, 0.36, cy + row_h*0.18, 1.4, row_h*0.58, fill=mc.get(method, GRAY))
+        txt(slide, method, 0.36, cy + row_h*0.2, 1.4, row_h*0.5,
+            size=13, bold=True, color=WHITE, align=PP_ALIGN.CENTER)
+        txt(slide, ep,   1.94, cy + row_h*0.2,  3.8, row_h*0.55, size=14, color=DARK)
+        rect(slide, 5.91, cy + row_h*0.2, 2.35, row_h*0.5, fill=pc.get(perm, GRAY))
+        txt(slide, perm, 5.91, cy + row_h*0.22, 2.35, row_h*0.45,
+            size=13, bold=True, color=WHITE, align=PP_ALIGN.CENTER)
+        txt(slide, desc, 8.46, cy + row_h*0.2,  4.65, row_h*0.55, size=14, color=DARK)
 
 col_x = [0.3, 1.88, 5.85, 8.4]
 col_w = [1.53, 3.92, 2.5,  4.8]
 heads = ["Method", "Endpoint", "權限", "說明"]
-for x, w, h in zip(col_x, col_w, heads):
-    rect(s, x, 1.3, w, 0.45, fill=BLUE)
-    txt(s, h, x+0.08, 1.33, w-0.12, 0.36,
-        size=13, bold=True, color=WHITE, align=PP_ALIGN.CENTER)
 
-rows = [
-    ("POST",   "/api/auth/register/", "公開", "註冊"),
-    ("POST",   "/api/auth/login/",    "公開", "登入，回傳 token"),
-    ("POST",   "/api/auth/logout/",   "認證", "刪除 Token 登出"),
-    ("GET",    "/api/auth/me/",       "認證", "取得目前使用者"),
-    ("GET",    "/api/folders/",       "認證", "列出資料夾"),
-    ("POST",   "/api/folders/",       "認證", "建立資料夾"),
-    ("DELETE", "/api/folders/{id}/",  "認證", "刪除資料夾"),
-    ("GET",    "/api/files/",         "認證", "列出檔案"),
-    ("POST",   "/api/files/",         "認證", "上傳檔案"),
-    ("DELETE", "/api/files/{id}/",    "認證", "刪除檔案"),
-]
-mc = {"GET": GREEN, "POST": BLUE, "DELETE": RED}
-pc = {"公開": ORANGE, "認證": BLUE}
-for i, (method, ep, perm, desc) in enumerate(rows):
-    bg = WHITE if i % 2 == 0 else LIGHT_GRAY
-    cy = 1.75 + i * 0.48
-    rect(s, 0.3, cy, 12.9, 0.46, fill=bg)
-    rect(s, 0.36, cy+0.08, 1.4, 0.3, fill=mc.get(method, GRAY))
-    txt(s, method, 0.36, cy+0.09, 1.4, 0.28,
-        size=11, bold=True, color=WHITE, align=PP_ALIGN.CENTER)
-    txt(s, ep,   1.94, cy+0.1,  3.8, 0.3, size=12, color=DARK)
-    rect(s, 5.91, cy+0.09, 2.35, 0.29, fill=pc.get(perm, GRAY))
-    txt(s, perm, 5.91, cy+0.1,  2.35, 0.27,
-        size=11, bold=True, color=WHITE, align=PP_ALIGN.CENTER)
-    txt(s, desc, 8.46, cy+0.1,  4.65, 0.3, size=12, color=DARK)
+s = prs.slides.add_slide(BLANK)
+header(s, "API 端點  —  認證")
+rect(s, 0, 1.2, 13.33, 6.3, fill=WHITE)
+txt(s, "使用者認證相關端點（無需登入即可呼叫的為「公開」）",
+    0.5, 1.35, 12.3, 0.38, size=14, color=GRAY)
+for x, w, h in zip(col_x, col_w, heads):
+    rect(s, x, 1.8, w, 0.5, fill=BLUE)
+    txt(s, h, x+0.08, 1.84, w-0.12, 0.38,
+        size=14, bold=True, color=WHITE, align=PP_ALIGN.CENTER)
+_api_table(s, [
+    ("POST", "/api/auth/register/", "公開", "建立新帳號"),
+    ("POST", "/api/auth/login/",    "公開", "登入，回傳 Token"),
+    ("POST", "/api/auth/logout/",   "認證", "刪除 Token，登出"),
+    ("GET",  "/api/auth/me/",       "認證", "取得目前登入使用者資訊"),
+], col_x, col_w, row_h=0.82, start_y=2.38)
+
+# ════════════════════════════════════════════════
+# Slide 7b — API 端點（資料夾 & 檔案）
+# ════════════════════════════════════════════════
+s = prs.slides.add_slide(BLANK)
+header(s, "API 端點  —  資料夾 & 檔案")
+rect(s, 0, 1.2, 13.33, 6.3, fill=WHITE)
+txt(s, "所有資料夾 / 檔案 API 均須附上 Authorization: Token <token>",
+    0.5, 1.35, 12.3, 0.38, size=14, color=GRAY)
+for x, w, h in zip(col_x, col_w, heads):
+    rect(s, x, 1.8, w, 0.5, fill=BLUE)
+    txt(s, h, x+0.08, 1.84, w-0.12, 0.38,
+        size=14, bold=True, color=WHITE, align=PP_ALIGN.CENTER)
+_api_table(s, [
+    ("GET",    "/api/folders/",             "認證", "列出目前使用者的所有資料夾"),
+    ("POST",   "/api/folders/",             "認證", "建立資料夾（可指定 parent）"),
+    ("DELETE", "/api/folders/{id}/",        "認證", "刪除資料夾及其內容"),
+    ("GET",    "/api/files/",               "認證", "列出目前使用者的所有檔案"),
+    ("POST",   "/api/files/",               "認證", "上傳檔案（FormData，含 folder_id）"),
+    ("GET",    "/api/files/{id}/download/", "認證", "下載檔案（回傳附件 FileResponse）"),
+    ("DELETE", "/api/files/{id}/",          "認證", "刪除檔案並移除磁碟上的實體檔"),
+], col_x, col_w, row_h=0.63, start_y=2.38)
 
 # ════════════════════════════════════════════════
 # Slide 8 — Token 認證
@@ -329,7 +349,7 @@ rect(s, 0, 1.2, 13.33, 6.3, fill=WHITE)
 
 techs = [
     ("React 19",         "UI 框架，元件化開發"),
-    ("MUI v5",           "Material Design 元件庫"),
+    ("MUI v9",           "Material Design 元件庫"),
     ("React Router v7",  "頁面路由，PrivateRoute 保護"),
     ("fetch API",        "瀏覽器內建，無需安裝套件"),
     ("Context API",      "全域認證狀態管理"),
@@ -556,42 +576,50 @@ for i, (comp, tech, desc) in enumerate(comps):
     txt(s, desc, cx+0.18, cy+0.98, 3.6, 0.55, size=12, color=GRAY)
 
 # ════════════════════════════════════════════════
-# Slide 15 — 專案目錄結構
+# Slide 15a — 前端目錄結構
+# ════════════════════════════════════════════════
+CODE = RGBColor(0xAB, 0xB2, 0xBF)
+
+s = prs.slides.add_slide(BLANK)
+header(s, "前端目錄結構  ( react_cloud_drive/src/ )")
+rect(s, 0, 1.2, 13.33, 6.3, fill=RGBColor(0x1E, 0x22, 0x27))
+for i, line in enumerate([
+    "api/",
+    "  client.js            ←  fetch 封裝，自動帶入 Token Header",
+    "contexts/",
+    "  AuthContext.js       ←  全域認證狀態（currentUser、login、logout）",
+    "hooks/",
+    "  useFolder.js         ←  資料夾 / 檔案讀取與刷新",
+    "pages/",
+    "  DrivePage.js         ←  主頁面，組合所有元件",
+    "components/",
+    "  Auth/    Login.js    Register.js",
+    "  Drive/   FolderItem.js  FileItem.js  UploadButton.js",
+    "           Breadcrumb.js  NewFolderDialog.js",
+    "  Layout/  Navbar.js",
+]):
+    txt(s, line, 0.7, 1.55+i*0.46, 12.0, 0.42, size=13, color=CODE)
+
+# ════════════════════════════════════════════════
+# Slide 15b — 後端目錄結構
 # ════════════════════════════════════════════════
 s = prs.slides.add_slide(BLANK)
-header(s, "專案目錄結構")
+header(s, "後端目錄結構  ( django_backend/ )")
 rect(s, 0, 1.2, 13.33, 6.3, fill=RGBColor(0x1E, 0x22, 0x27))
-
-CODE = RGBColor(0xAB, 0xB2, 0xBF)
-txt(s, "Frontend  (react_cloud_drive/src/)",
-    0.5, 1.32, 6.0, 0.38, size=14, bold=True, color=BLUE)
 for i, line in enumerate([
-    "api/client.js       ← fetch 封裝 + Token",
-    "contexts/AuthContext.js  ← 全域認證",
-    "hooks/useFolder.js  ← 資料夾/檔案 Hook",
-    "pages/DrivePage.js  ← 主頁面",
-    "components/",
-    "  Auth/    Login  Register",
-    "  Drive/   FolderItem  FileItem",
-    "           UploadButton  Breadcrumb",
-    "  Layout/  Navbar",
+    "core/",
+    "  settings.py          ←  INSTALLED_APPS、Token Auth、CORS、媒體路徑",
+    "  urls.py              ←  主路由，include drive.urls",
+    "drive/",
+    "  models.py            ←  Folder（自參考）、File（含 FileField）",
+    "  serializers.py       ←  FolderSerializer、FileSerializer",
+    "  views.py             ←  ViewSet + register / login / logout views",
+    "  urls.py              ←  /api/ 前綴路由表",
+    "media/files/           ←  使用者上傳的實體檔案",
+    "db.sqlite3             ←  SQLite 資料庫（零設定）",
+    "requirements.txt       ←  Django、DRF、django-cors-headers",
 ]):
-    txt(s, line, 0.5, 1.78+i*0.42, 6.0, 0.38, size=11.5, color=CODE)
-
-txt(s, "Backend  (django_backend/)",
-    6.9, 1.32, 6.0, 0.38, size=14, bold=True, color=GREEN)
-for i, line in enumerate([
-    "core/settings.py  ← 設定 + Token Auth",
-    "core/urls.py      ← 主路由",
-    "drive/models.py   ← Folder / File",
-    "drive/serializers.py",
-    "drive/views.py    ← ViewSet + login/logout",
-    "drive/urls.py     ← /api/ 路由",
-    "media/files/      ← 上傳檔案",
-    "db.sqlite3        ← 資料庫",
-    "requirements.txt",
-]):
-    txt(s, line, 6.9, 1.78+i*0.42, 6.2, 0.38, size=11.5, color=CODE)
+    txt(s, line, 0.7, 1.55+i*0.46, 12.0, 0.42, size=13, color=CODE)
 
 # ════════════════════════════════════════════════
 # Slide 16 — 總結
@@ -626,6 +654,6 @@ txt(s, "React Cloud Drive  ·  2025",
     size=13, color=RGBColor(0x9E, 0xC8, 0xFF), align=PP_ALIGN.CENTER)
 
 # ════════════════════════════════════════════════
-out = "/home/yubo/web_final/cloud_drive_presentation.pptx"
+out = "/home/yubo/Webp2026_final/cloud_drive_presentation.pptx"
 prs.save(out)
 print(f"✅  已生成：{out}  ({len(prs.slides)} 張投影片)")
